@@ -1,0 +1,298 @@
+============================================================
+Version numbers and features of caSCADA 
+(in reverse chronological order)
+
+Wish-list for future versions:
+--> General:
+-----> modbus_open_close function should be capable
+-----> Fix the "PID scan rate" display so that it reads correctly when scans are skipped in pid.c or looptune.c
+--> looptune:
+-----> Model processes with noise and no load
+-----> Model processes with specific lag orders (e.g. 1-order, 2-order) and deadtimes
+-----> Multiple lag times for sim_process() 
+--------> Recursive function of the integral?
+-----> Control quality metrics:
+--------> Percent-minutes total error accumulation
+--------> Maximum valve velocity
+--------> Valve reversals per minute
+--------> Porpoising detection
+--------> Overshoot percentage
+--> pid:
+-----> Series algorithm option
+-----> Ratio control strategy (type=2)
+-----> Cascade control strategy (type=3)
+
+May 10, 2019 (version 3.7)
+Changed license to CC0 (Public Domain).
+
+March 21, 2018 (version 3.6)
+* Added an "if" conditional to the pid.c
+and looptune.c source code that allows the 
+PID algorithm to be skipped every "n" scans.  
+This is useless for real control applications, 
+but very useful as an educational tool to
+show the effects of slow PID scan rates on
+control quality.  Operator interface and
+trend graph scan time is unaffected by 
+this conditional.
+
+March 15, 2018 (version 3.5)
+* Changed "algorithm" to "equation" where it 
+represented Ideal versus Parallel, because 
+the term "algorithm" is more accurately 
+representative of position vs. velocity, which
+"pid" currently only implements the position
+algorithm.
+* Edited instructions for choosing simulation
+valve type to be clearer on the fact that the 
+valve action (ATC vs ATO) is random, and must 
+be empirically determined upon start-up of the 
+simulation.
+* Instructions for modifying the trend size in 
+"pid" now come after the trend, so that if it 
+is too large the instructions don't get blown
+off the screen!
+* Maximum integral action is now 400.0 repeats
+per minute rather than 99.
+* A text banner now appears in the upper border
+of the trend screen showing whether this is a
+SIMULATION or a SINGLE-LOOP control application.
+
+December 29, 2017 (version 3.4)
+* Fixed the bug in "looptune" causing a floating-
+point exception error every few startups when 
+selecting the "Surprise me!" option for simulated
+process type.  The load interval parameter's range
+was 0 to 5 when it should have been 1 to 5.  A 
+value of 0 created a divide-by-zero error when run. 
+* Modified the "splash" screen function for the
+pid controller application, so that the initial
+network and PV limit settings will be on their 
+own page regardless of the height of the trend
+graph.
+
+November 16, 2017 (version 3.3)
+* Eliminated unnecessary #include statement in pid.c.
+
+July 28, 2017 (version 3.2)
+* Consolidated all Modbus open/close functions
+within its own source file (modbus_open_close.c)
+and made this a dependency for the pid, poll,
+and modprobe applications.
+* Edited a typo in README.txt as well as added
+another function programming example using
+a static local variable.
+
+July 27, 2017 (version 3.1)
+* Added a useful Modbus/TCP testing utility of
+my own called "modprobe".  This consists of a
+stand-alone C-language source file that opens
+a Modbus/TCP connection and then queries a 
+Modbus slave device according to register
+numbers the user enters in a repeating loop.
+If you are setting up a Modbus/TCP device and
+need to experiment with it by "probing" various
+registers (i.e. reading those registers' 
+contents), this utility is very useful.
+
+June 1, 2017 (version 3.0)
+* Cleaned up some trailing whitespace problems
+with the ncurses display, where the controller
+tuning parameters are shown.  Rather than pad
+each printw() function text with blank spaces
+at the end, I simply added a nested for() 
+routine that "paints" a solid backdrop of color
+with proper dimensions for that area of the
+display.
+* Fixed a floating-point exception error that
+resulted in occasional crashes upon start-up.
+If the lag time got randomly set to zero, it
+would cause a divide-by-zero error!
+* Add split-ranged output sequencing, making use
+* Altered the LOAD trend recorder pen to be a
+letter "w" rather than a letter "l".  This stands
+for "wild" and will make more sense when I add
+ratio control capability and that pen represents
+the wild variable.
+
+May 24, 2017 (version 2.9)
+* Added feedforward control capability to the
+controller.c file and also added code to pid.c
+to read AIN1 as the feedforward load variable.
+Feedforward gain and bias parameters have been
+added to the ncurses display (FFG and FFB), 
+and output tracking code in controller.c has
+been updated to achieve bumpless transfer 
+switching from manual mode to automatic mode
+despite any changes which may have occurred
+with feedforward action while in manual mode.
+The ncurses-based display shows the load 
+variable as a percentage and also as a trend
+pen (l) whenever FFG is set to a practical
+value.  When running as the "pid" process,
+this load display is the AIN1 variable from
+the feedforward transmitter.  When running as
+the "looptune" process, this load display is
+the randomly-walking load variable created by
+the sim_process() function.
+
+May 1, 2017 (version 2.8)
+* Added the nanosleep() function to pid.c
+so that the PID controller doesn't use up 
+100% of the CPU's processing power when it 
+runs.  Based on the success of using
+nanosleep() to slow down the "looptune"
+application, I decided to use it here as well.
+Without nanosleep() delay, the PID controller
+typically scans at several hundred times per
+second on a desktop CPU and about 60 times 
+per second on a Raspberry Pi model B+ (!!). 
+
+April 11, 2017 (version 2.7)
+* Added the following functionality to "looptune":
+*** Created a new general-purpose randomvalue() function
+returning a random floating-point value between lower- 
+and upper-range values passed to the function as 
+arguments.  This will be useful for randomizing all 
+manner of process parameters upon start-up!
+*** High, Low, High-High, and Low-Low alarm values are
+*** Control valve gain is now randomized at start-up.
+*** Control valve stiction ("stick" and "slip") is now 
+randomized at start-up.
+*** Process lag time is now randomized at start-up.
+*** Process noise is now randomized at start-up.
+*** Load amplitude is now randomized at start-up.
+*** More comments added in controller.h regarding good
+values to use for TRENDWIDTH and TRENDHEIGHT.
+*** Graphical trend now begins with PV, SP, and OUT
+all having a history of 50%.
+*** Added a dead time function for the simulated
+process, with randomized start-up value.
+
+
+March 29, 2017 (version 2.6)
+* Added HH, H, L, and LL indicators to the right of
+the trend graph showing the hi-hi, hi, lo, and lo-lo
+alarm points, respectively.
+* Eliminated initializing values within pid.h which
+was causing compilation errors whenever multiple 
+source files included this header file.  Instead,
+all initializations happen inside the set_defaults()
+function.  
+* Eliminated declaration of the modbus_t pointer 
+"Device" from the pid.h header file, instead 
+locating it at the beginning of pid.c.
+* Removed PID controller code from pid.c and put
+it in its own separate file (controller.c), leaving
+pid.c to do the setup and initialization necessary
+for real process control.  This let me write a new
+program called "looptune" (looptune.c) which does
+process simulation for PID tuning, using the exact
+same code module (controller.c) as pid.
+* Modified the project Makefile to support compilation
+of "looptune" as its own program, as well as better
+organize dependencies for all the other programs.
+* Created two additional functions (sim_valve and
+sim_process) used to simulate a physical process for
+the new "looptune" program.
+* Simulated loop execution time is set using the
+nanosleep() function, defaulting at 0.2 seconds.
+This helps conserve processing power by causing
+the program to briefly halt rather than needlessly
+consuming CPU cycles with delay loops.  Running on 
+a base-model Raspberry Pi, the looptune process 
+only demands 1.7% of processor capacity and 0.3% 
+of system memory!
+* Set the default PID controller gain to 0.5 instead
+of 1.0 as it was before, since a gain of 1 may be
+too much for some processes!
+* Changed the minimum bound for scans_per_second
+from 0.1 to 5.0 which is much more realistic.  A
+value as small as 0.1 was causing the sim_process() 
+function's numerical integration to begin much
+too aggressively!  Since the "looptune" program
+sleeps every 0.2 seconds anyway, a starting value
+of 5.0 scans per second is perfect.
+
+
+October 27, 2016 (version 2.5)
+Added sawtooth step function to the formerly
+"random-walk" function for cascada_poll_simulate.
+
+
+October 19, 2016 (version 2.4)
+Fixed error whereby the "simulate" executable was 
+relying on libmodbus when it really didn't need to.
+A compilation error was being generated in version
+2.3 when running "make simulate", because t_modbus
+declared in cascada.h header file was not a defined 
+variable type.  The fix required updates to both
+cascada_poll_simulate code as well as cascada_poll
+and the cascada.h header file and the Makefile.
+This was basically a bug that was untested in 
+version 2.3.  My bad!
+
+
+April 24, 2016 (version 2.3)
+Re-wrote Modbus read/write functions for floating-point
+variables to be generic rather than specific to the 
+LabJack model T7 DAQ.  Now you just specify the absolute
+Modbus address and byte-swapping order, and the read/write 
+function does all the relative address arithmetic and
+swaps bytes as ordered.  Also, the PID executable now only
+reads one analog input (rather than all 14 inputs on the
+LabJack T7), speeding up loop execution by almost one 
+whole order of magnitude (600 scans/sec versus 63 
+scans/sec on one machine).
+
+
+March 11, 2016 (Version 2.2)
+Modularized the PID functionality to support multiple
+loops, each one called by passing an integer number
+to it (e.g. pid(0); or pid(1);).  Also eliminated time
+delay in network error recovery, so it returns to normal 
+sooner.  Added GNU General Public License text and
+notices to the code.  Added integral deadband, so that
+we can turn off integral action whenever the PV gets to
+within some specified margin of SP.  Modified derivative
+calculation, so that dPV/dt is calculated over a timespan
+of just a few scans (rather than over several trend ticks)
+for a more prompt determination of rate-of-change.
+Added comments explaining the Modbus register ranges read
+by each "modbus_read_" function.
+
+
+February 5, 2016 (Version 2.1)
+Added basic PID control functionality on analog input
+AIN0 and analog output DAC0 on the LabJack model T7
+DAQ.  The new executable (pid0) is a stand-alone
+process containing all the code for communication with
+the LabJack as well as the PID algorithm and operator
+interface (based on ncurses).  The trend display's
+width and height are both set by a #define term 
+(default = 78 wide to accomodate an 80-column display).
+Also switched on the built-in network error recovery
+of libmodbus, so that it handles events such as a 
+temporarily unplugged Ethernet cable.
+
+
+December 8, 2015 (Version 2.0)
+Added analog output capability for the LabJack model T7
+DAQ, which has two 12-bit 0-5 VDC analog outputs.  The
+two analog outputs are driven by two floating-point
+variables in the caSCADA memory: aout[0] and aout[1]
+whose raw values are to be interpreted as volts DC.
+
+
+November 17, 2015 (Version 1.1)
+The random walk function in cascada_poll_simulate.c now
+has easily-configurable step span and hi/lo bound limit
+variables.
+
+
+November 8, 2015 (Version 1.0)
+The two data output files, data.txt and data.html, now 
+contain status values.
+
+
+
